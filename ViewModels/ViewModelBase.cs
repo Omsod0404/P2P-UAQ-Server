@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.ComponentModel;
 
-namespace Server.ViewModels
+namespace P2P_UAQ_Server.ViewModels
 {
     public abstract class ViewModelBase : INotifyPropertyChanged
     {
