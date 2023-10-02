@@ -43,8 +43,8 @@ namespace P2P_UAQ_Server.Models
             if (!isRunning)
             {
                 IPAddress ip = IPAddress.Parse(ipAddress);
-                server = new TcpListener(ip, port);
-                server.Start(maxConnections);
+                server = new TcpListener(ip, int.Parse(port));
+                server.Start(int.Parse(maxConnections));
 
                 //Esta es la manera en que se manda la informacion del estado al servidor, es como si fuera el console.Write
                 OnStatusUpdated("Servidor escuchando en "+ip+":"+port);
