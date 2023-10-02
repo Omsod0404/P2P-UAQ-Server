@@ -10,21 +10,25 @@ using System.Windows;
 using P2P_UAQ_Server.ViewModels;
 using System.Windows.Controls;
 using System.Windows.Threading;
+using System.IO;
 
 namespace P2P_UAQ_Server.Models
 {
     public class ServerModel
     {
         private string ipAddress;
-        private int port;
-        private int maxConnections;
+        private string port;
+        private string maxConnections;
 
         private TcpListener server;
+        private Stream _stream;
+        private StreamWriter _writer;
+        private StreamReader _reader;
         private bool isRunning = false;
         private Thread listenThread;
 
 
-        public ServerModel(string ipAddress, int port, int maxConnections)
+        public ServerModel(string ipAddress, string port, string maxConnections)
         {
             this.ipAddress = ipAddress;
             this.port = port;
@@ -47,7 +51,7 @@ namespace P2P_UAQ_Server.Models
                 OnStatusUpdated("Esperando conexiones...");
                     
                 return true;                    
-                
+               
             }
             return true;
         }

@@ -19,10 +19,13 @@ namespace P2P_UAQ_Server.ViewModels
     {
         //Fields
         private string _dirIP;
-        private int _port;
-        private int _users;
+
+        private string _port;
+        private string _users;
+        
+        //private string _errorMessage;
         private bool _isViewVisible = true;
-        private bool _isServerRunning = true;
+        private bool _isServerRunning = false;
         private object _serverView;
 
         public string DirIP 
@@ -37,7 +40,7 @@ namespace P2P_UAQ_Server.ViewModels
                 OnPropertyChanged(nameof(DirIP));
             }    
         }
-        public int Port 
+        public string Port 
         {
             get 
             { 
@@ -49,7 +52,7 @@ namespace P2P_UAQ_Server.ViewModels
                 OnPropertyChanged(nameof(Port));
             } 
         }
-        public int Users 
+        public string Users 
         {
             get
             {
@@ -112,7 +115,7 @@ namespace P2P_UAQ_Server.ViewModels
         private bool CanExecuteStartServerCommand(object obj)
         {
             bool validData;
-            if (string.IsNullOrWhiteSpace(DirIP) || Port == 0 || Users == 0 )  
+            if (string.IsNullOrWhiteSpace(DirIP) || string.IsNullOrWhiteSpace(Port) || string.IsNullOrWhiteSpace(Users))  
             { 
                 validData = false;
             }
