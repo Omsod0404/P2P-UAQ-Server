@@ -149,6 +149,7 @@
                         <Style TargetType="{x:Type Border}">
                             <Setter Property="CornerRadius" Value="10"/>
                             <Setter Property="Cursor" Value="IBeam"/>
+                            <Setter Property="BorderThickness" Value="0"/>
                         </Style>
                         <Style TargetType="TextBox">
                             <Style.Triggers>
@@ -215,6 +216,7 @@
                         <Style TargetType="{x:Type Border}">
                             <Setter Property="CornerRadius" Value="10"/>
                             <Setter Property="Cursor" Value="IBeam"/>
+                            <Setter Property="BorderThickness" Value="0"/>
                         </Style>
                         <Style TargetType="TextBox">
                             <Style.Triggers>
@@ -240,6 +242,7 @@
                         <Style TargetType="Button">
                             <Setter Property="Background" Value="#A55B5F"/>
                             <Setter Property="FontWeight" Value="Normal"/>
+                            <Setter Property="BorderThickness" Value="0"/>
                             <Style.Triggers>
                                 <Trigger Property="IsMouseOver" Value="True">
                                     <Setter Property="FontWeight" Value="Medium"></Setter>

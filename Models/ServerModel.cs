@@ -15,15 +15,15 @@ namespace Server.Models
     public class ServerModel
     {
         private string ipAddress;
-        private int port;
-        private int maxConnections;
+        private string port;
+        private string maxConnections;
 
         private TcpListener server;
         private bool isRunning = false;
         private Thread serverThread;
         
 
-        public ServerModel(string ipAddress, int port, int maxConnections)
+        public ServerModel(string ipAddress, string port, string maxConnections)
         {
             this.ipAddress = ipAddress;
             this.port = port;
@@ -37,8 +37,8 @@ namespace Server.Models
                 try
                 {
                     IPAddress ip = IPAddress.Parse(ipAddress);
-                    server = new TcpListener(ip, port);
-                    server.Start(maxConnections);
+                    server = new TcpListener(ip, int.Parse(port));
+                    server.Start(int.Parse(maxConnections));
 
                     
 
