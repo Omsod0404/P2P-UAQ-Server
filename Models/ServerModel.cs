@@ -6,12 +6,13 @@ using System.Threading.Tasks;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
-using Server.ViewModels;
+using System.Windows;
+using P2P_UAQ_Server.ViewModels;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using System.IO;
 
-namespace Server.Models
+namespace P2P_UAQ_Server.Models
 {
     public class ServerModel
     {
@@ -24,8 +25,8 @@ namespace Server.Models
         private StreamWriter _writer;
         private StreamReader _reader;
         private bool isRunning = false;
-        private Thread serverThread;
-        
+        private Thread listenThread;
+
 
         public ServerModel(string ipAddress, string port, string maxConnections)
         {
@@ -34,48 +35,27 @@ namespace Server.Models
             this.maxConnections = maxConnections;
         }
 
+        //Este es para manejar el estado del servidor
+        public event Action<string> ServerStatusUpdated;
+
         public bool StartServer()
         {
             if (!isRunning)
             {
-                try
-                {
-                    IPAddress ip = IPAddress.Parse(ipAddress);
-                    server = new TcpListener(ip, int.Parse(port));
-                    server.Start(int.Parse(maxConnections));
+                IPAddress ip = IPAddress.Parse(ipAddress);
+                server = new TcpListener(ip, port);
+                server.Start(maxConnections);
 
-
-					isRunning = true;
-					Console.WriteLine("Escuchando en {0}:{0}", ipAddress, port);
-
-					while (true)
-                    {
-                        var client = server.AcceptTcpClient();
-
-                        _stream = client.GetStream();
-                        _reader = new StreamReader(_stream);
-                        _writer = new StreamWriter(_stream);
-
-                    }
-
+                //Esta es la manera en que se manda la informacion del estado al servidor, es como si fuera el console.Write
+                OnStatusUpdated("Servidor escuchando en "+ip+":"+port);
+                OnStatusUpdated("Esperando conexiones...");
                     
-
-                    return true;
-
-                    
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("Error al iniciar el servidor: " + ex.Message);
-                    return false;
-                }
+                return true;                    
+               
             }
             return true;
         }
 
-          
-        
-        //Esto se tiene que quitar
         public void StopServer()
         {
             if (isRunning)
@@ -83,6 +63,13 @@ namespace Server.Models
                 server.Stop();
                 isRunning = false;
             }
+            OnStatusUpdated("Conexiones cerradas");
+        }
+
+        //Para actualizar el status del server en el dashboard, esta se tiene que quedar
+        private void OnStatusUpdated(string status)
+        {
+            ServerStatusUpdated?.Invoke(status);
         }
 
     }

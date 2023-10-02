@@ -11,13 +11,11 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using Server.Views;
+using P2P_UAQ_Server.Views;
 
-namespace Server.Views
+namespace P2P_UAQ_Server.Views
 {
-    /// <summary>
-    /// Lógica de interacción para StartServerView.xaml
-    /// </summary>
+  
     public partial class StartServerView : Window
     {
         public StartServerView()

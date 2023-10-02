@@ -8,4 +8,8 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="Views\DashboardView.xaml~RF4061b293.TMP" />
+  </ItemGroup>
+
 </Project>
