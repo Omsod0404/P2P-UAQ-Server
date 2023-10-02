@@ -9,6 +9,7 @@ using System.Threading;
 using Server.ViewModels;
 using System.Windows.Controls;
 using System.Windows.Threading;
+using System.IO;
 
 namespace Server.Models
 {
@@ -19,6 +20,9 @@ namespace Server.Models
         private string maxConnections;
 
         private TcpListener server;
+        private Stream _stream;
+        private StreamWriter _writer;
+        private StreamReader _reader;
         private bool isRunning = false;
         private Thread serverThread;
         
@@ -40,11 +44,22 @@ namespace Server.Models
                     server = new TcpListener(ip, int.Parse(port));
                     server.Start(int.Parse(maxConnections));
 
+
+					isRunning = true;
+					Console.WriteLine("Escuchando en {0}:{0}", ipAddress, port);
+
+					while (true)
+                    {
+                        var client = server.AcceptTcpClient();
+
+                        _stream = client.GetStream();
+                        _reader = new StreamReader(_stream);
+                        _writer = new StreamWriter(_stream);
+
+                    }
+
                     
 
-                    isRunning = true;
-
-                    Console.WriteLine("Escuchando en {0}:{0}", ipAddress, port);
                     return true;
 
                     
