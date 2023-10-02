@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Input;
 
-namespace Server.ViewModels
+namespace P2P_UAQ_Server.ViewModels
 {
     public class ViewModelCommand : ICommand
     {
