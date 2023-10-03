@@ -11,6 +11,9 @@ using P2P_UAQ_Server.ViewModels;
 using System.Windows.Controls;
 using System.Windows.Threading;
 using System.IO;
+using System.Net.Http;
+using System.Text.Json;
+using System.Net.NetworkInformation;
 
 namespace P2P_UAQ_Server.Models
 {
@@ -26,6 +29,16 @@ namespace P2P_UAQ_Server.Models
         private StreamReader _reader;
         private bool isRunning = false;
         private Thread listenThread;
+
+        // ****
+        public class Connection
+        {
+            public string? Name { get; set; }
+            public string? Ip { get; set; }
+            public int Port { get; set; }
+        }
+
+        // ****
 
 
         public ServerModel(string ipAddress, string port, string maxConnections)
@@ -49,7 +62,8 @@ namespace P2P_UAQ_Server.Models
                 //Esta es la manera en que se manda la informacion del estado al servidor, es como si fuera el console.Write
                 OnStatusUpdated("Servidor escuchando en "+ip+":"+port);
                 OnStatusUpdated("Esperando conexiones...");
-                    
+                connectionManager(server);
+
                 return true;                    
                
             }
@@ -71,6 +85,124 @@ namespace P2P_UAQ_Server.Models
         {
             ServerStatusUpdated?.Invoke(status);
         }
+
+        // ****
+
+        public void connectionManager(TcpListener server) { 
+            
+            List<Connection> contactBook = new List<Connection>();
+            
+            OnStatusUpdated("Connection list is ready");
+
+            while (true) { 
+                TcpClient client = server.AcceptTcpClient();
+                Thread clientT = new Thread(() => clientThread(client, contactBook));
+            }
+
+        }
+
+        public void clientThread(TcpClient client, List<Connection> contactBook)
+        {
+            byte[] buff = new byte[2097152]; // 2MB
+
+            string clientIP = ((IPEndPoint)client.Client.RemoteEndPoint).Address.ToString();
+            int clientPort = ((IPEndPoint)client.Client.RemoteEndPoint).Port;
+
+            OnStatusUpdated("Client connected: IP: " + clientIP + " Port: " + clientPort);
+
+            int bytesName = client.GetStream().Read(buff);
+            string clientName = Encoding.UTF8.GetString(buff, 0, bytesName);
+
+            clientName = checkName(clientName, contactBook, client);
+
+            addConnectionToContactBook(contactBook, clientIP, clientName, clientPort);
+
+            sendJSON(client, contactBook, clientName);
+
+        }
+
+        public string checkName(string name, List<Connection> contactBook, TcpClient client) {
+
+            byte[] buff = new byte[120];
+            int bytesInName;
+            NetworkStream stream = client.GetStream();
+
+
+            bool inUse = nameInUse(name, contactBook);
+
+            if (!inUse) { stream.WriteByte(0); }
+
+            while (inUse == true) {
+
+                stream.WriteByte(1);
+                //int b = stream.Read(new byte[1], 0, 1);
+                bytesInName = stream.Read(buff);
+                name = Encoding.UTF8.GetString(buff, 0, bytesInName);
+
+                inUse = nameInUse(name, contactBook);
+
+                if (!inUse) { stream.WriteByte(0); }
+
+            }
+
+            OnStatusUpdated("List updated (New contact added)");
+
+            return name;
+        }
+
+        public bool nameInUse(string name, List<Connection> contactBook) {
+
+            bool inUse = false;
+
+            foreach (Connection c in contactBook)
+            {
+                if (c.Name.Equals(name)) { inUse = true; break; }
+            }
+
+            return inUse;
+        }
+
+        public void sendJSON(TcpClient client, List<Connection> contactBook, string name) {
+            
+            NetworkStream stream = client.GetStream();
+            
+            string json = JsonSerializer.Serialize(removeUser(contactBook, name));
+            
+            byte[] jsonBytes = Encoding.UTF8.GetBytes(json);
+
+            stream.Write(jsonBytes, 0, jsonBytes.Length);
+
+            OnStatusUpdated("Contact list sent to client");
+        }
+
+        public List<Connection> removeUser(List<Connection> contactBook, string name)
+        {
+
+            List<Connection> connections = new List<Connection> { };
+            foreach (var connection in contactBook)
+            {
+                if (!connection.Name.Equals(name)) { connections.Add(connection); }
+            }
+
+            return connections;
+        }
+
+        public void addConnectionToContactBook(List<Connection> contactBook, string ip, string name, int port) {
+           
+            var connection = new Connection
+            {
+
+                Name = name,
+                Ip = ip,
+                Port = port
+
+            };
+
+            contactBook.Add(connection);
+        }
+
+        // ****
+
 
     }
 }
