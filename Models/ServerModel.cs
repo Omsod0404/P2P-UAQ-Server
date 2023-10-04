@@ -88,15 +88,17 @@ namespace P2P_UAQ_Server.Models
 
         // ****
 
-        public void connectionManager(TcpListener server) { 
+        public async void connectionManager(TcpListener server) { 
             
             List<Connection> contactBook = new List<Connection>();
             
             OnStatusUpdated("Connection list is ready");
 
-            while (true) { 
-                TcpClient client = server.AcceptTcpClient();
+            while (true)
+            {
+                TcpClient client = await server.AcceptTcpClientAsync();
                 Thread clientT = new Thread(() => clientThread(client, contactBook));
+                clientT.Start();
             }
 
         }
@@ -108,7 +110,7 @@ namespace P2P_UAQ_Server.Models
             string clientIP = ((IPEndPoint)client.Client.RemoteEndPoint).Address.ToString();
             int clientPort = ((IPEndPoint)client.Client.RemoteEndPoint).Port;
 
-            OnStatusUpdated("Client connected: IP: " + clientIP + " Port: " + clientPort);
+            OnStatusUpdated("Client connected: " + clientIP + ":" + clientPort);
 
             int bytesName = client.GetStream().Read(buff);
             string clientName = Encoding.UTF8.GetString(buff, 0, bytesName);
@@ -145,8 +147,6 @@ namespace P2P_UAQ_Server.Models
 
             }
 
-            OnStatusUpdated("List updated (New contact added)");
-
             return name;
         }
 
@@ -172,7 +172,7 @@ namespace P2P_UAQ_Server.Models
 
             stream.Write(jsonBytes, 0, jsonBytes.Length);
 
-            OnStatusUpdated("Contact list sent to client");
+            OnStatusUpdated("Contact list sent to client:" + name);
         }
 
         public List<Connection> removeUser(List<Connection> contactBook, string name)
@@ -188,7 +188,7 @@ namespace P2P_UAQ_Server.Models
         }
 
         public void addConnectionToContactBook(List<Connection> contactBook, string ip, string name, int port) {
-           
+
             var connection = new Connection
             {
 
@@ -199,6 +199,9 @@ namespace P2P_UAQ_Server.Models
             };
 
             contactBook.Add(connection);
+
+            OnStatusUpdated("List updated (New contact added): " + name + ":" + ip + ":" + port);
+
         }
 
         // ****
