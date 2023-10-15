@@ -14,6 +14,7 @@ using System.IO;
 using System.Net.Http;
 using System.Text.Json;
 using System.Net.NetworkInformation;
+using P2P_UAQ_Server.Models;
 
 namespace P2P_UAQ_Server.Models
 {
@@ -31,12 +32,6 @@ namespace P2P_UAQ_Server.Models
         private Thread listenThread;
 
         // ****
-        public class Connection
-        {
-            public string? Name { get; set; }
-            public string? Ip { get; set; }
-            public int Port { get; set; }
-        }
 
         // ****
 
@@ -156,7 +151,7 @@ namespace P2P_UAQ_Server.Models
 
             foreach (Connection c in contactBook)
             {
-                if (c.Name.Equals(name)) { inUse = true; break; }
+                if (c.Nickname.Equals(name)) { inUse = true; break; }
             }
 
             return inUse;
@@ -181,7 +176,7 @@ namespace P2P_UAQ_Server.Models
             List<Connection> connections = new List<Connection> { };
             foreach (var connection in contactBook)
             {
-                if (!connection.Name.Equals(name)) { connections.Add(connection); }
+                if (!connection.Nickname.Equals(name)) { connections.Add(connection); }
             }
 
             return connections;
@@ -192,8 +187,8 @@ namespace P2P_UAQ_Server.Models
             var connection = new Connection
             {
 
-                Name = name,
-                Ip = ip,
+                Nickname = name,
+                IpAddress = ip,
                 Port = port
 
             };
