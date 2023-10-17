@@ -131,7 +131,9 @@ namespace P2P_UAQ_Server.ViewModels
             var serverModel = new ServerModel(DirIP, Port, Users);
             ShowDashboardView(serverModel);
             CloseWindow();
-            
+            /*
+             COLOCAR CORE
+             */
 
             if (serverModel.StartServer())
             {
