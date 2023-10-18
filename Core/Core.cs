@@ -111,7 +111,7 @@ namespace P2P_UAQ_Server.Core
                         // enviar error
                         message = new Message(); // overwrite el mensaje
 
-                        message.Type = MessageType.NameInUse;
+                        message.Type = MessageType.UsernameInUse;
                         message.NicknameRequester = "server";
                         message.PortRequester = _serverPort;
                         message.IpAddressRequester = _serverIP;

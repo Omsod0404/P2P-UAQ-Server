@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,9 +10,16 @@ namespace P2P_UAQ_Server.Models
 {
     public class Connection
     {
-        public Stream? Stream { get; set; }
-        public StreamWriter? StreamWriter { get; set; }
-        public StreamReader? StreamReader { get; set; }
+		[JsonIgnore]
+		public Stream? Stream { get; set; }
+
+		[JsonIgnore]
+		public StreamWriter? StreamWriter { get; set; }
+
+		[JsonIgnore]
+		public StreamReader? StreamReader { get; set; }
+        
+        
         public string? Nickname { get; set; }
         public int Port { get; set; }
         public string? IpAddress { get; set; }

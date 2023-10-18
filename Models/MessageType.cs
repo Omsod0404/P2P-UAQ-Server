@@ -15,6 +15,6 @@ namespace P2P_UAQ_Server.Models
         ChatCloseRequest,
         ChatMessage,
         File,
-        NameInUse,
+		UsernameInUse,
     }
 }

@@ -98,7 +98,7 @@ namespace P2P_UAQ_Server.Models
 
             // iniciamos servidor para escuhcar todo
 
-            _server = new TcpListener(IPAddress.Any, _serverPort);
+            _server = new TcpListener(IPAddress.Parse(_serverIP), _serverPort);
             _server.Start(int.Parse(_maxConnections));
 
             OnStatusUpdated("Server listo y esperando en: " + _serverIP + ":" + _serverPort);
@@ -124,8 +124,11 @@ namespace P2P_UAQ_Server.Models
 
                 var dataReceived = await _newConnection.StreamReader!.ReadLineAsync();
                 var message = JsonConvert.DeserializeObject<Message>(dataReceived!);
+                var convertedData = JsonConvert.DeserializeObject<Connection>(message!.Data as string);
 
-                OnStatusUpdated("mensaje recibido");
+                _newConnection.Nickname = convertedData!.Nickname;
+
+				OnStatusUpdated("mensaje recibido");
 
                 if (message.Type == MessageType.UserConnected)
                 {
@@ -133,6 +136,13 @@ namespace P2P_UAQ_Server.Models
 
                     if (existingConnection.Count == 0)
                     {
+                        var messageToSend = new Message();
+                        messageToSend.Type = MessageType.UsernameInUse;
+                        messageToSend.Data = false;
+
+                        _newConnection.StreamWriter.WriteLine(JsonConvert.SerializeObject(messageToSend));
+                        _newConnection.StreamWriter.Flush();
+
                         _connections.Add(_newConnection);
                         SendConnectionListToAll();
 
@@ -146,7 +156,7 @@ namespace P2P_UAQ_Server.Models
                         // enviar error
                         message = new Message(); // overwrite el mensaje
 
-                        message.Type = MessageType.NameInUse;
+                        message.Type = MessageType.UsernameInUse;
                         message.NicknameRequester = "server";
                         message.PortRequester = _serverPort;
                         message.IpAddressRequester = _serverIP;
