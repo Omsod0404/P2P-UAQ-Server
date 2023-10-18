@@ -59,7 +59,7 @@ namespace P2P_UAQ_Server.Core
         // ****
 
         // PARA INICIAR SERVIDOR
-        public async void InitializeLocalServer(string ip, int port, string maxConnections) {
+        public void InitializeLocalServer(string ip, int port, string maxConnections) {
 
             // datos del servidor
 
@@ -75,7 +75,7 @@ namespace P2P_UAQ_Server.Core
 
             while (true)
             {
-                _client = await _server.AcceptTcpClientAsync();
+                _client = _server.AcceptTcpClient();
 
                 // guardamos la conexión con sus datos
                 
@@ -91,7 +91,7 @@ namespace P2P_UAQ_Server.Core
 
                 // confirmamos el nombre
 
-                var dataReceived = await _newConnection.StreamReader!.ReadLineAsync();
+                var dataReceived =  _newConnection.StreamReader!.ReadLine();
                 var message = JsonConvert.DeserializeObject<Message>(dataReceived!);
 
                 if (message.Type != MessageType.UserConnected)
@@ -120,6 +120,7 @@ namespace P2P_UAQ_Server.Core
                         string messageJson = JsonConvert.SerializeObject(message);
 
                         _newConnection.StreamWriter.WriteLine(messageJson);
+                        _newConnection.StreamWriter.Flush();
                     }
                 }
                
