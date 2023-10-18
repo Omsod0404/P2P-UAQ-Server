@@ -76,7 +76,7 @@ namespace P2P_UAQ_Server.Models
         }
 
         //Para actualizar el status del server en el dashboard, esta se tiene que quedar
-        private void OnStatusUpdated(string status)
+        public void OnStatusUpdated(string status)
         {
             ServerStatusUpdated?.Invoke(status);
         }
