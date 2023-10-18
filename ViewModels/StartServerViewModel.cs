@@ -81,7 +81,8 @@ namespace P2P_UAQ_Server.ViewModels
         public bool IsServerRunning 
         {
             get
-            { return _isServerRunning; 
+            { 
+                return _isServerRunning; 
             }
             set
             {
