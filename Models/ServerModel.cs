@@ -122,7 +122,7 @@ namespace P2P_UAQ_Server.Models
 
                 // confirmamos el nombre
 
-                var dataReceived = await _newConnection.StreamReader!.ReadLineAsync();
+                var dataReceived = _newConnection.StreamReader!.ReadLine();
                 var message = JsonConvert.DeserializeObject<Message>(dataReceived!);
                 var convertedData = JsonConvert.DeserializeObject<Connection>(message!.Data as string);
 
@@ -138,7 +138,7 @@ namespace P2P_UAQ_Server.Models
                     {
                         var messageToSend = new Message();
                         messageToSend.Type = MessageType.UsernameInUse;
-                        messageToSend.Data = false;
+                        messageToSend.Data = true;
 
                         _newConnection.StreamWriter.WriteLine(JsonConvert.SerializeObject(messageToSend));
                         _newConnection.StreamWriter.Flush();
@@ -155,16 +155,13 @@ namespace P2P_UAQ_Server.Models
                     {
                         // enviar error
                         message = new Message(); // overwrite el mensaje
-
                         message.Type = MessageType.UsernameInUse;
-                        message.NicknameRequester = "server";
-                        message.PortRequester = _serverPort;
-                        message.IpAddressRequester = _serverIP;
-                        message.Data = _newConnection.Nickname; // envia como dato el nombre en uso
+                        message.Data = false; // envia como dato el nombre en uso
 
                         string messageJson = JsonConvert.SerializeObject(message);
 
                         _newConnection.StreamWriter.WriteLine(messageJson);
+                        _newConnection.StreamWriter.Flush();
 
                         OnStatusUpdated("Conexión rechazada: " + _newConnection.IpAddress + ":" + _newConnection.Port);
                     }
@@ -178,27 +175,27 @@ namespace P2P_UAQ_Server.Models
 
             Connection connection = _newConnection;
 
-            
-                try
+
+            try
+            {
+
+                var dataReceived = await connection.StreamReader!.ReadLineAsync();
+                var message = JsonConvert.DeserializeObject<Message>(dataReceived!);
+
+                if (message.Type == MessageType.UserDisconnected)
                 {
-
-                    var dataReceived = await connection.StreamReader!.ReadLineAsync();
-                    var message = JsonConvert.DeserializeObject<Message>(dataReceived!);
-
-                    if (message.Type == MessageType.UserDisconnected)
-                    {
-                        // disconnected user
-                        _connections.RemoveAll(c => c.Nickname == connection.Nickname && c.IpAddress == connection.IpAddress && c.Port == connection.Port);
-                        SendDisconnectedUserToAll(connection);
-
-                        OnStatusUpdated("User removed and sent: " + connection.Nickname + ":" + connection.IpAddress + ":" + connection.Port);
-                    }
-                }
-                catch (Exception ex)
-                {
+                    // disconnected user
 
                 }
-            
+            }
+            catch (Exception ex)
+            {
+                _connections.RemoveAll(c => c.Nickname == connection.Nickname && c.IpAddress == connection.IpAddress && c.Port == connection.Port);
+                SendDisconnectedUserToAll(connection);
+
+                OnStatusUpdated("User removed and sent: " + connection.Nickname + ":" + connection.IpAddress + ":" + connection.Port);
+            }
+
         }
         // ****
 

@@ -110,7 +110,11 @@ namespace P2P_UAQ_Server.ViewModels
         //Construtor
         public StartServerViewModel()
         {
-            StartServerCommand = new ViewModelCommand(ExecuteStartServerCommand, CanExecuteStartServerCommand);
+
+			_dirIP = "127.0.0.1";
+		    _port = "8000";
+		    _users = "20";
+		    StartServerCommand = new ViewModelCommand(ExecuteStartServerCommand, CanExecuteStartServerCommand);
         }
 
         private bool CanExecuteStartServerCommand(object obj)
