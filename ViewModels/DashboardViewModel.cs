@@ -11,13 +11,14 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using P2P_UAQ_Server.Models;
 using P2P_UAQ_Server.Views;
+using P2P_UAQ_Server.Core;
 
 namespace P2P_UAQ_Server.ViewModels
 {
     public class DashboardViewModel:ViewModelBase
     {
         private bool _isViewVisible = true;
-        private ServerModel serverModel;
+        private CoreHandler _handler;
 
         public bool IsViewVisible
         {
@@ -35,16 +36,20 @@ namespace P2P_UAQ_Server.ViewModels
         private List<string> serverStatusMessages = new List<string>();
         
 
-        public DashboardViewModel(ServerModel serverModel)
+        public DashboardViewModel()
         {
-            this.serverModel = serverModel;
-            serverModel.ServerStatusUpdated += OnServerStatusUpdated;
-            
+            _handler = CoreHandler.Instance;
+            _handler.ServerStatusUpdated += OnServerStatusUpdated;
+			_handler.PublicMessageReceived += _handler_PublicMessageReceived;
         }
 
-        
+		private void _handler_PublicMessageReceived(object? sender, Core.Events.MessageReceivedEventArgs e)
+		{
+            serverStatusMessages.Add(e.Message);
+			OnPropertyChanged(nameof(AllServerStatusMessages));
+		}
 
-        public string AllServerStatusMessages
+		public string AllServerStatusMessages
         {
             get { return string.Join(Environment.NewLine, serverStatusMessages); }
         }
@@ -58,7 +63,7 @@ namespace P2P_UAQ_Server.ViewModels
 
         public void TurnOffServer()
         {
-            serverModel.StopServer();
+            _handler.StopServer();
         }
 
     }

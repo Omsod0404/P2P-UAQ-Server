@@ -11,7 +11,7 @@ using System.Windows.Threading;
 using P2P_UAQ_Server.Models;
 using P2P_UAQ_Server.Views;
 using P2P_UAQ_Server.ViewModels;
-
+using P2P_UAQ_Server.Core;
 
 namespace P2P_UAQ_Server.ViewModels
 {
@@ -133,17 +133,11 @@ namespace P2P_UAQ_Server.ViewModels
 
         private void ExecuteStartServerCommand(object obj)
         {
-            var serverModel = new ServerModel(DirIP, Port, Users);
-            ShowDashboardView(serverModel);
-            CloseWindow();
-            /*
-             COLOCAR CORE
-             */
-
-            if (serverModel.StartServer())
-            {
-                IsServerRunning = true;
-            }
+			ShowDashboardView();
+			CloseWindow();
+			CoreHandler.Instance.InitializeLocalServer(DirIP, int.Parse(Port), Users);
+			IsServerRunning = true;
+            
         }
 
         private void CloseWindow()
@@ -151,9 +145,9 @@ namespace P2P_UAQ_Server.ViewModels
             Application.Current.Windows.OfType<StartServerView>().FirstOrDefault()?.Close();
         }
 
-        private void ShowDashboardView(ServerModel serverModel)
+        private void ShowDashboardView()
         {
-            var dashViewModel = new DashboardViewModel(serverModel);
+            var dashViewModel = new DashboardViewModel();
             var dashView = new DashboardView(dashViewModel);
             dashView.Show();
         }
