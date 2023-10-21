@@ -5,7 +5,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-//using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
 using System.IO;
@@ -68,7 +67,7 @@ namespace P2P_UAQ_Server.Core
 			_server = new TcpListener(IPAddress.Parse(_serverIP), _serverPort);
 			_server.Start(_maxConnections);
 
-			HandlerOnMessageReceived("Server listo y esperando en: " + _serverIP + ":" + _serverPort);
+			HandlerOnMessageReceived("Server listo y esperando en: [" + _serverIP + ":" + _serverPort + "]");
 
 			while (true)
 			{
@@ -85,7 +84,7 @@ namespace P2P_UAQ_Server.Core
 				_newConnection.IpAddress = newConnectionEndPoint.Address.ToString(); // ip
 				_newConnection.Port = newConnectionEndPoint.Port; // puerto
 
-				HandlerOnMessageReceived("En espera de aprovación de nombre: " + _newConnection.IpAddress + ":" + _newConnection.Port);
+				HandlerOnMessageReceived("En espera de aprovación de nombre: [" + _newConnection.IpAddress + ":" + _newConnection.Port+"]");
 
 				// confirmamos el nombre
 
@@ -95,11 +94,11 @@ namespace P2P_UAQ_Server.Core
 
 				_newConnection.Nickname = convertedData!.Nickname;
 
-				HandlerOnMessageReceived("Mensaje recibido");
+				HandlerOnMessageReceived("Mensaje con datos recibido: [" + _newConnection.IpAddress + ":" + _newConnection.Port + "]");
 
 				if (message.Type == MessageType.UserConnected)
 				{
-					var existingConnection = _connections.FindAll(c => c.Nickname == _newConnection.Nickname && c.IpAddress == _newConnection.IpAddress && c.Port == _newConnection.Port);
+					var existingConnection = _connections.FindAll(c => c.Nickname == _newConnection.Nickname);
 
 					if (existingConnection.Count == 0)
 					{
@@ -112,7 +111,7 @@ namespace P2P_UAQ_Server.Core
 
 						_connections.Add(_newConnection);
 
-						HandlerOnMessageReceived("Conexión agregada" + _newConnection.IpAddress + "" + _newConnection.Port + " y lista enviada a todos");
+						HandlerOnMessageReceived("Conexión agregada y lista enviada a todos: [" + _newConnection.Nickname + ":" + _newConnection.IpAddress + ":" + _newConnection.Port + "]");
 
 						foreach (Connection c in _connections)
 						{
@@ -144,7 +143,7 @@ namespace P2P_UAQ_Server.Core
 						_newConnection.StreamWriter.WriteLine(messageJson);
 						_newConnection.StreamWriter.Flush();
 
-						HandlerOnMessageReceived("Conexión rechazada: " + _newConnection.IpAddress + ":" + _newConnection.Port);
+						HandlerOnMessageReceived("Conexión rechazada: [" + _newConnection.IpAddress + ":" + _newConnection.Port + "]");
 					}
 				}
 
@@ -171,7 +170,7 @@ namespace P2P_UAQ_Server.Core
                         _connections.RemoveAll(c => c.Nickname == connection.Nickname && c.IpAddress == connection.IpAddress && c.Port == connection.Port);
                         SendDisconnectedUserToAll(connection);
 
-                        HandlerOnMessageReceived("User removed and sent: " + connection.Nickname + ":" + connection.IpAddress + ":" + connection.Port);
+                        HandlerOnMessageReceived("Usuario desconectado y todos alertados: [" + connection.Nickname + ":" + connection.IpAddress + ":" + connection.Port + "]");
                         connectionOpen = false;
                     }
                 }
@@ -181,7 +180,6 @@ namespace P2P_UAQ_Server.Core
 				}
             }
         }
-        // ****
 
         public void SendConnectionListToAll(Connection receiver, Connection connection)
         {
@@ -224,7 +222,7 @@ namespace P2P_UAQ_Server.Core
                 _server.Stop();
                 _isRunning = false;
             }
-			HandlerOnMessageReceived("Servidor cerrado");
+			HandlerOnMessageReceived("Servidor cerrado.");
         }
 
 
