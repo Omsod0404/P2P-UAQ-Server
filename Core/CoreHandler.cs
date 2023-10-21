@@ -24,7 +24,7 @@ namespace P2P_UAQ_Server.Core
         private readonly static CoreHandler _instance = new CoreHandler();
 		private string _serverIP;
 		private int _serverPort;
-		private string _maxConnections;
+		private int _maxConnections;
 		private TcpListener _server;
 		private List<Connection> _connections = new List<Connection>();
 
@@ -72,11 +72,11 @@ namespace P2P_UAQ_Server.Core
 		{
 			_serverIP = ip;
 			_serverPort = port;
-			_maxConnections = maxConnections;
+			_maxConnections = int.Parse(maxConnections);
 
 
 			_server = new TcpListener(IPAddress.Parse(_serverIP), _serverPort);
-			_server.Start(int.Parse(maxConnections));
+			_server.Start(_maxConnections);
 
 			HandlerOnMessageReceived("Server listo y esperando en: " + _serverIP + ":" + _serverPort);
 
@@ -105,7 +105,7 @@ namespace P2P_UAQ_Server.Core
 
 				_newConnection.Nickname = convertedData!.Nickname;
 
-				HandlerOnMessageReceived("mensaje recibido");
+				HandlerOnMessageReceived("Mensaje recibido");
 
 				if (message.Type == MessageType.UserConnected)
 				{
@@ -177,17 +177,17 @@ namespace P2P_UAQ_Server.Core
 
                     if (message.Type == MessageType.UserDisconnected)
                     {
-                       
+                        // disconnected user
+                        _connections.RemoveAll(c => c.Nickname == connection.Nickname && c.IpAddress == connection.IpAddress && c.Port == connection.Port);
+                        SendDisconnectedUserToAll(connection);
+
+                        HandlerOnMessageReceived("User removed and sent: " + connection.Nickname + ":" + connection.IpAddress + ":" + connection.Port);
+                        connectionOpen = false;
                     }
                 }
                 catch
                 {
-					// disconnected user
-					_connections.RemoveAll(c => c.Nickname == connection.Nickname && c.IpAddress == connection.IpAddress && c.Port == connection.Port);
-					SendDisconnectedUserToAll(connection);
-
-					HandlerOnMessageReceived("User removed and sent: " + connection.Nickname + ":" + connection.IpAddress + ":" + connection.Port);
-					connectionOpen = false;
+					
 				}
             }
         }
