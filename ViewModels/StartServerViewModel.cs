@@ -26,7 +26,7 @@ namespace P2P_UAQ_Server.ViewModels
         //private string _errorMessage;
         private bool _isViewVisible = true;
         private bool _isServerRunning = false;
-        private object _serverView;
+        private object? _serverView;
 
         public string DirIP 
         {
@@ -95,7 +95,7 @@ namespace P2P_UAQ_Server.ViewModels
         {
             get
             {
-                return _serverView;
+                return _serverView!;
             }
             set
             { 

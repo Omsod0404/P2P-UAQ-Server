@@ -13,7 +13,6 @@ using System.Threading;
 using P2P_UAQ_Server.Core.Events;
 using P2P_UAQ_Server.ViewModels;
 using P2P_UAQ_Server.Views;
-using P2P_UAQ_Server.Models;
 using System.Windows;
 
 
@@ -22,14 +21,14 @@ namespace P2P_UAQ_Server.Core
     public class CoreHandler
     {
         private readonly static CoreHandler _instance = new CoreHandler();
-		private string _serverIP;
+		private string? _serverIP;
 		private int _serverPort;
-		private string _maxConnections;
-		private TcpListener _server;
+		private string? _maxConnections;
+		private TcpListener? _server;
 		private List<Connection> _connections = new List<Connection>();
 
 		// datos conexiones 
-		private TcpClient _client;
+		private TcpClient? _client;
 		private Connection _newConnection = new Connection(); // Variable reutilizable para los usuarios conectados
 
 		//private Stream _stream;
@@ -38,26 +37,21 @@ namespace P2P_UAQ_Server.Core
 
 		private bool _isRunning = false;
 
-		public event EventHandler<PrivateMessageReceivedEventArgs> PrivateMessageReceived;
-		public event EventHandler<MessageReceivedEventArgs> PublicMessageReceived;
+		public event EventHandler<PrivateMessageReceivedEventArgs>? PrivateMessageReceived;
+		public event EventHandler<MessageReceivedEventArgs>? PublicMessageReceived;
 
 
-		private CoreHandler() { 
-        
+		private CoreHandler() {
+			_serverIP = "";
+			_serverPort = 0;
         }
 
         public static CoreHandler Instance { 
             get { return _instance; } 
         }
 
-        public event Action<string> ServerStatusUpdated;
+        public event Action<string>? ServerStatusUpdated;
 
-
-        // Invoker
-        //private void OnPrivateMessageReceived(PrivateMessageReceivedEventArgs e) => PrivateMessageReceived?.Invoke(this, e);
-
-        // Handler
-        //private void OnStatusUpdated(string message) => OnPrivateMessageReceived(new PrivateMessageReceivedEventArgs(message));
 
         //Para actualizar el status del server en el dashboard, esta se tiene que quedar
         public void OnStatusUpdated(string status)
@@ -78,7 +72,7 @@ namespace P2P_UAQ_Server.Core
 			_server = new TcpListener(IPAddress.Parse(_serverIP), _serverPort);
 			_server.Start(int.Parse(maxConnections));
 
-			HandlerOnMessageReceived("Server listo y esperando en: " + _serverIP + ":" + _serverPort);
+			HandlerOnMessageReceived($"Server listo y esperando en: {_serverIP}:{_serverPort}");
 
 			while (true)
 			{
@@ -90,26 +84,23 @@ namespace P2P_UAQ_Server.Core
 				_newConnection.StreamWriter = new StreamWriter(_newConnection.Stream); // stream para enviar
 				_newConnection.StreamReader = new StreamReader(_newConnection.Stream); // stream para recibir
 
-				var newConnectionEndPoint = ((IPEndPoint)_client.Client.RemoteEndPoint!);
-
-				_newConnection.IpAddress = newConnectionEndPoint.Address.ToString(); // ip
-				_newConnection.Port = newConnectionEndPoint.Port; // puerto
-
-				HandlerOnMessageReceived("En espera de aprovación de nombre: " + _newConnection.IpAddress + ":" + _newConnection.Port);
 
 				// confirmamos el nombre
 
 				var dataReceived = _newConnection.StreamReader!.ReadLine();
 				var message = JsonConvert.DeserializeObject<Message>(dataReceived!);
-				var convertedData = JsonConvert.DeserializeObject<Connection>(message!.Data as string);
+				string? json = message!.Data as string;
+				var convertedData = JsonConvert.DeserializeObject<Connection>(json!);
 
 				_newConnection.Nickname = convertedData!.Nickname;
+				_newConnection.IpAddress = convertedData.IpAddress; // ip
+				_newConnection.Port = convertedData.Port; // puerto
 
-				HandlerOnMessageReceived("mensaje recibido");
+				HandlerOnMessageReceived($"En espera de aprovación de nombre {_newConnection.Nickname} - {_newConnection.IpAddress}:{_newConnection.Port}.");
 
 				if (message.Type == MessageType.UserConnected)
 				{
-					var existingConnection = _connections.FindAll(c => c.Nickname == _newConnection.Nickname && c.IpAddress == _newConnection.IpAddress && c.Port == _newConnection.Port);
+					var existingConnection = _connections.FindAll(c => c.Nickname == _newConnection.Nickname);
 
 					if (existingConnection.Count == 0)
 					{
@@ -122,8 +113,9 @@ namespace P2P_UAQ_Server.Core
 
 						_connections.Add(_newConnection);
 
-						HandlerOnMessageReceived("Conexión agregada" + _newConnection.IpAddress + "" + _newConnection.Port + " y lista enviada a todos");
-
+						HandlerOnMessageReceived("Nombre disponible. Notificando al cliente.");
+						HandlerOnMessageReceived($"Conexión agregada {_newConnection.IpAddress}:{_newConnection.Port} y notificando a todos.");
+						
 						foreach (Connection c in _connections)
 						{
 							// Se les enviara un mensaje de que x usuario se ha conectado.
@@ -154,7 +146,7 @@ namespace P2P_UAQ_Server.Core
 						_newConnection.StreamWriter.WriteLine(messageJson);
 						_newConnection.StreamWriter.Flush();
 
-						HandlerOnMessageReceived("Conexión rechazada: " + _newConnection.IpAddress + ":" + _newConnection.Port);
+						HandlerOnMessageReceived($"Conexión rechazada: {_newConnection.IpAddress}:{_newConnection.Port}. Notificando al cliente.");
 					}
 				}
 
@@ -175,7 +167,7 @@ namespace P2P_UAQ_Server.Core
                     var dataReceived = await connection.StreamReader!.ReadLineAsync();
                     var message = JsonConvert.DeserializeObject<Message>(dataReceived!);
 
-                    if (message.Type == MessageType.UserDisconnected)
+                    if (message!.Type == MessageType.UserDisconnected)
                     {
                        
                     }
@@ -184,14 +176,29 @@ namespace P2P_UAQ_Server.Core
                 {
 					// disconnected user
 					_connections.RemoveAll(c => c.Nickname == connection.Nickname && c.IpAddress == connection.IpAddress && c.Port == connection.Port);
-					SendDisconnectedUserToAll(connection);
+					HandlerOnMessageReceived($"Usuario desconectado. Actualizando a todos: {connection.Nickname} - {connection.IpAddress}:{connection.Port}. Notificando al cliente.");
 
-					HandlerOnMessageReceived("User removed and sent: " + connection.Nickname + ":" + connection.IpAddress + ":" + connection.Port);
+					foreach (Connection c in _connections)
+					{
+						try
+						{
+							var msgUserDisconnected = $"{connection.Nickname} se ha desconectado.";
+							var msgUserToBeSent = new Message { Type = MessageType.Message, Data = msgUserDisconnected };
+
+							c.StreamWriter!.WriteLine(JsonConvert.SerializeObject(msgUserToBeSent));
+							c.StreamWriter!.Flush();
+
+							SendDisconnectedUserToAll(c, connection);
+						}
+						catch
+						{
+						}
+					}
+
 					connectionOpen = false;
 				}
             }
         }
-        // ****
 
         public void SendConnectionListToAll(Connection receiver, Connection connection)
         {
@@ -204,34 +211,31 @@ namespace P2P_UAQ_Server.Core
 
 			var json = JsonConvert.SerializeObject(message);
 
-			receiver.StreamWriter!.WriteLine(JsonConvert.SerializeObject(json));
+			receiver.StreamWriter!.WriteLine(json);
 			receiver.StreamWriter!.Flush();
 		}
 
-        public void SendDisconnectedUserToAll(Connection connection)
+
+		public void SendDisconnectedUserToAll(Connection receiver, Connection connection)
         {
             var connections = _connections;
             var message = new Message();
 
             message.Type = MessageType.UserDisconnected;
-            message.NicknameRequester = "server";
-            message.PortRequester = _serverPort;
-            message.IpAddressRequester = _serverIP;
             message.Data = connection;
 
             string messageJson = JsonConvert.SerializeObject(message);
-
-            foreach (var c in connections)
-            {
-                c.StreamWriter.WriteLine(messageJson);
-            }
+    
+			receiver.StreamWriter!.WriteLine(messageJson);
+			receiver.StreamWriter.Flush();
+			
         }
 
-        public void StopServer()
+		public void StopServer()
         {
             if (_isRunning)
             {
-                _server.Stop();
+                _server!.Stop();
                 _isRunning = false;
             }
 			HandlerOnMessageReceived("Servidor cerrado");
@@ -242,17 +246,12 @@ namespace P2P_UAQ_Server.Core
 		
 		// Invokers
 
-		private void OnMessageReceived(MessageReceivedEventArgs e)
-		{
-			PublicMessageReceived?.Invoke(this, e);
-		}
+		private void OnMessageReceived(MessageReceivedEventArgs e) => PublicMessageReceived?.Invoke(this, e);
+		
 
 		// Handlers
 
-		private void HandlerOnMessageReceived(string value)
-		{
-			OnMessageReceived(new MessageReceivedEventArgs(value));
-		}
+		private void HandlerOnMessageReceived(string value) => OnMessageReceived(new MessageReceivedEventArgs(value));
 		
 	}
 }
