@@ -32,10 +32,6 @@ namespace P2P_UAQ_Server.Core
 		private TcpClient _client;
 		private Connection _newConnection = new Connection(); // Variable reutilizable para los usuarios conectados
 
-		//private Stream _stream;
-		//private StreamWriter _writer;
-		//private StreamReader _reader;
-
 		private bool _isRunning = false;
 
 		public event EventHandler<PrivateMessageReceivedEventArgs> PrivateMessageReceived;
@@ -52,12 +48,6 @@ namespace P2P_UAQ_Server.Core
 
         public event Action<string> ServerStatusUpdated;
 
-
-        // Invoker
-        //private void OnPrivateMessageReceived(PrivateMessageReceivedEventArgs e) => PrivateMessageReceived?.Invoke(this, e);
-
-        // Handler
-        //private void OnStatusUpdated(string message) => OnPrivateMessageReceived(new PrivateMessageReceivedEventArgs(message));
 
         //Para actualizar el status del server en el dashboard, esta se tiene que quedar
         public void OnStatusUpdated(string status)
