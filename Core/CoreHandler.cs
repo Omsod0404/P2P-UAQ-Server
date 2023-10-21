@@ -5,7 +5,6 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-//using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
 using System.IO;
@@ -23,17 +22,13 @@ namespace P2P_UAQ_Server.Core
         private readonly static CoreHandler _instance = new CoreHandler();
 		private string? _serverIP;
 		private int _serverPort;
-		private string? _maxConnections;
+		private int _maxConnections;
 		private TcpListener? _server;
 		private List<Connection> _connections = new List<Connection>();
 
 		// datos conexiones 
 		private TcpClient? _client;
 		private Connection _newConnection = new Connection(); // Variable reutilizable para los usuarios conectados
-
-		//private Stream _stream;
-		//private StreamWriter _writer;
-		//private StreamReader _reader;
 
 		private bool _isRunning = false;
 
@@ -66,11 +61,11 @@ namespace P2P_UAQ_Server.Core
 		{
 			_serverIP = ip;
 			_serverPort = port;
-			_maxConnections = maxConnections;
+			_maxConnections = int.Parse(maxConnections);
 
 
 			_server = new TcpListener(IPAddress.Parse(_serverIP), _serverPort);
-			_server.Start(int.Parse(maxConnections));
+			_server.Start(_maxConnections);
 
 			HandlerOnMessageReceived($"Server listo y esperando en: {_serverIP}:{_serverPort}");
 
@@ -96,7 +91,7 @@ namespace P2P_UAQ_Server.Core
 				_newConnection.IpAddress = convertedData.IpAddress; // ip
 				_newConnection.Port = convertedData.Port; // puerto
 
-				HandlerOnMessageReceived($"En espera de aprovación de nombre {_newConnection.Nickname} - {_newConnection.IpAddress}:{_newConnection.Port}.");
+				HandlerOnMessageReceived($"En espera de aprovación de nombre: {_newConnection.Nickname} - {_newConnection.IpAddress}:{_newConnection.Port}.");
 
 				if (message.Type == MessageType.UserConnected)
 				{
@@ -114,7 +109,7 @@ namespace P2P_UAQ_Server.Core
 						_connections.Add(_newConnection);
 
 						HandlerOnMessageReceived("Nombre disponible. Notificando al cliente.");
-						HandlerOnMessageReceived($"Conexión agregada {_newConnection.IpAddress}:{_newConnection.Port} y notificando a todos.");
+						HandlerOnMessageReceived($"Conexión agregada: {_newConnection.IpAddress}:{_newConnection.Port} y notificando a todos.");
 						
 						foreach (Connection c in _connections)
 						{
@@ -238,7 +233,7 @@ namespace P2P_UAQ_Server.Core
                 _server!.Stop();
                 _isRunning = false;
             }
-			HandlerOnMessageReceived("Servidor cerrado");
+			HandlerOnMessageReceived("Servidor cerrado.");
         }
 
 
