@@ -89,6 +89,9 @@ namespace P2P_UAQ_Server.Core
 
 				_newConnection.Nickname = convertedData!.Nickname;
 				_newConnection.IpAddress = convertedData.IpAddress; // ip
+
+				if (object.Equals(convertedData.IpAddress, "0.0.0.0")) _newConnection.IpAddress = "127.0.0.1";
+
 				_newConnection.Port = convertedData.Port; // puerto
 
 				HandlerOnMessageReceived($"En espera de aprovación de nombre: {_newConnection.Nickname} - {_newConnection.IpAddress}:{_newConnection.Port}.");
