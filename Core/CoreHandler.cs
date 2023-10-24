@@ -200,7 +200,6 @@ namespace P2P_UAQ_Server.Core
 
         public void SendConnectionListToAll(Connection receiver, Connection connection)
         {
-
 			var message = new Message
 			{
 				Type = MessageType.UserConnected,
@@ -216,18 +215,18 @@ namespace P2P_UAQ_Server.Core
 
 		public void SendDisconnectedUserToAll(Connection receiver, Connection connection)
         {
-            var connections = _connections;
-            var message = new Message();
+			var message = new Message
+			{
+				Type = MessageType.UserDisconnected,
+				Data = JsonConvert.SerializeObject(connection),
+			};
 
-            message.Type = MessageType.UserDisconnected;
-            message.Data = connection;
+			var json = JsonConvert.SerializeObject(message);
 
-            string messageJson = JsonConvert.SerializeObject(message);
-    
-			receiver.StreamWriter!.WriteLine(messageJson);
-			receiver.StreamWriter.Flush();
-			
-        }
+			receiver.StreamWriter!.WriteLine(json);
+			receiver.StreamWriter!.Flush();
+
+		}
 
 		public void StopServer()
         {
